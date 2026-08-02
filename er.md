@@ -1,42 +1,46 @@
 ```mermaid
 erDiagram
 
-    ユーザー ||--o{ アルバム : 作成
-    ユーザー ||--o{ 写真 : 所有
-    ユーザー ||--o{ 仕分け履歴 : 実行
-    アルバム ||--o{ 写真 : 保存
-    写真 ||--o{ 仕分け履歴 : 対象
+    users ||--o{ albums : creates
+    users ||--o{ photos : owns
+    albums ||--o{ album_photos : has
+    photos ||--o{ album_photos : belongs
 
-    ユーザー {
-        int ID PK
-        string ユーザー名
-        string メールアドレス
-        string パスワード
+    users {
+        int id PK
+        string name
+        string email
+        string password
+        datetime created_at
+        datetime updated_at
     }
 
-    アルバム {
-        int ID PK
-        int ユーザーID FK
-        string アルバム名
-        datetime 作成日時
+    albums {
+        int id PK
+        int user_id FK
+        string name
+        datetime created_at
+        datetime updated_at
     }
 
-    写真 {
-        int ID PK
-        int アルバムID FK
-        string 画像URL
-        datetime 撮影時間
-        string 撮影場所
-        decimal 緯度
-        decimal 経度
-        string 状態
+    photos {
+        int id PK
+        int user_id FK
+        string url
+        datetime taken_at
+        string location
+        decimal latitude
+        decimal longitude
+        string status
+        datetime created_at
+        datetime updated_at
     }
 
-    仕分け履歴 {
-        int ID PK
-        int ユーザーID FK
-        int 写真ID FK
-        string 仕分け結果
-        datetime 仕分け日時
+    album_photos {
+        int id PK
+        int album_id FK
+        int photo_id FK
+        datetime created_at
+        datetime updated_at
     }
 ```
