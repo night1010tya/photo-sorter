@@ -31,7 +31,6 @@ erDiagram
         string location
         decimal latitude
         decimal longitude
-        string status
         datetime created_at
         datetime updated_at
     }
