@@ -96,67 +96,67 @@ export default function Signup() {
   };
 
   return (
-    <div>
-      <p className="block text-lg text-center text-[#2e8b57] mt-[15px] ">新規登録</p>
-    <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500">
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="w-full">
+        <p className="block text-lg text-center text-[#2e8b57] mb-[15px] ">新規登録</p>
+        <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500">
+          <form onSubmit={handleSubmit}>
+            <div>
+              <Input
+              label="名前"
+              placeholder="名前"
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                size="medium"
+                error={errors.name}
+              />
+            </div>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <Input
-           label="名前"
-           placeholder="名前"
-            id="name"
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleChange}
-            size="medium"
-            error={errors.name}
-          />
+            <div>
+              <Input
+                label="メールアドレス"
+                placeholder="メールアドレス"
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                size="medium"
+                error={errors.email}
+              />
+            </div>
+
+            <div>
+              <Input
+                label="パスワード"
+                placeholder="パスワード"
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                size="medium"
+                error={errors.password}
+              />
+            </div>
+
+            <button className="block w-full p-1 mb-3 bg-[#2e8b57] text-[#ffffff] " type="submit">新規登録</button>
+
+            {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
+          </form>
+          <div className="mb-[15px] text-sm">
+            <p>または以下で登録</p>
+            <button type="button">Googleで登録</button>
+          </div>
+          <p className="text-xs text-center">
+            既にアカウントをお持ちの方は
+            <Link href="/login" className="text-blue-500">ログイン</Link>
+          </p>
         </div>
-
-        <div>
-          <Input
-            label="メールアドレス"
-            placeholder="メールアドレス"
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            size="medium"
-            error={errors.email}
-          />
-        </div>
-
-        <div>
-          <Input
-            label="パスワード"
-            placeholder="パスワード"
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            size="medium"
-            error={errors.password}
-          />
-        </div>
-
-        <button className="block w-full p-1 mb-3 bg-[#2e8b57] text-[#ffffff] " type="submit">新規登録</button>
-
-        {message && <p>{message}</p>}
-      </form>
-
-      <div className="mb-[15px] text-sm">
-        <p>または以下で登録</p>
-        <button type="button">Googleで登録</button>
       </div>
-      <p className="text-xs text-center">
-        既にアカウントをお持ちの方は
-        <Link href="/login" className="text-blue-500">ログイン</Link>
-      </p>
-    </div>
     </div>
   );
 }

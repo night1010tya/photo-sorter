@@ -71,7 +71,7 @@ export const POST = async (request: Request) => {
 
     return NextResponse.json(
       {
-        message: "登録が完了しました",
+        message: "アカウントを作成しました。ログインしてください",
         user: {
           id: user.id,
           name: user.name,
