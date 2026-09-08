@@ -4,7 +4,7 @@ export default function Input ({
     label, id, name, type, value, error,size,onChange,placeholder
 }:InputProps) {
     const sizeClass = {
-        medium: "h-[30px] border p-[10px]"
+        medium: "h-[30px] border p-[20px]"
     }
     
     return(

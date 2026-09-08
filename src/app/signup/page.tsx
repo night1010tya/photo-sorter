@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -98,8 +99,8 @@ export default function Signup() {
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="w-full">
-        <p className="block text-lg text-center text-[#2e8b57] mb-[15px] ">新規登録</p>
-        <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500">
+        <p className="block text-2xl text-center text-gray-500 mb-[15px] font-semibold">新規登録</p>
+        <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500 flex flex-col gap-1">
           <form onSubmit={handleSubmit}>
             <div>
               <Input
@@ -143,18 +144,16 @@ export default function Signup() {
               />
             </div>
 
-            <button className="block w-full p-1 mb-3 bg-[#2e8b57] text-[#ffffff] " type="submit">新規登録</button>
+            <Button type="submit">新規登録</Button>
 
             {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
           </form>
-          <div className="mb-[15px] text-sm">
-            <p>または以下で登録</p>
-            <button type="button">Googleで登録</button>
-          </div>
-          <p className="text-xs text-center">
-            既にアカウントをお持ちの方は
-            <Link href="/login" className="text-blue-500">ログイン</Link>
-          </p>
+            <p className="text-sm">または以下で登録</p>
+            <Button>Googleで登録</Button>
+            <p className="text-xs text-center">
+              既にアカウントをお持ちの方は
+              <Link href="/login" className="text-blue-500">ログイン</Link>
+            </p>
         </div>
       </div>
     </div>

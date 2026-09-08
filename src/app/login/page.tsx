@@ -1,4 +1,5 @@
 "use client"
+import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -79,7 +80,7 @@ export default function Login() {
     return(
         <div className="flex justify-center items-center min-h-screen">
             <div className="w-full">
-                <p className="block text-lg text-center text-[#2e8b57] mb-[15px]">ログイン</p>
+                <p className="block text-2xl text-center text-gray-500 mb-[15px] font-semibold">ログイン</p>
                 <form 
                 className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500"
                 onSubmit={handleSubmit}>
@@ -105,7 +106,9 @@ export default function Login() {
                         size="medium"
                         placeholder="パスワード"
                     />
-                    <button className="block w-full p-1 mb-3 bg-[#2e8b57] text-[#ffffff]" type="submit">ログイン</button>
+                    <div className="my-4">
+                        <Button type="submit">ログイン</Button>
+                    </div>
                     {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
                         <p className="text-xs text-center">アカウントをお持ちでない方は<Link href="/signup" className="text-blue-500">新規作成</Link></p>
                 </form>
