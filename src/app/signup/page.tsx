@@ -97,7 +97,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center min-h-screen px-4">
       <div className="w-full">
         <p className="block text-2xl text-center text-gray-500 mb-[15px] font-semibold">新規登録</p>
         <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500 flex flex-col gap-1">

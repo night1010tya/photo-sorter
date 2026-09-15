@@ -78,7 +78,7 @@ export default function Login() {
         };
 
     return(
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-screen px-4">
             <div className="w-full">
                 <p className="block text-2xl text-center text-gray-500 mb-[15px] font-semibold">ログイン</p>
                 <form 
