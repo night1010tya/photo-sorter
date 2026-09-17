@@ -17,8 +17,8 @@ export default function Home() {
     <>
       <Header />
       <main  className="min-h-screen flex flex-col px-4">
-        <div className="my-9">
-          <Button><FolderPlus />仕分けを始める</Button>
+        <div className="my-9 tracking-wider ">
+          <Button><FolderPlus className="animate-bounce duration-1000 mt-2"/>仕分けを始める</Button>
         </div>
 
         <div className="flex gap-4 my-6">
@@ -27,7 +27,7 @@ export default function Home() {
           <Button variant="secondary"><Folders />アルバム一覧</Button>
         </div>
 
-        <p className="mb-2">最近追加された写真</p>
+        <p className="mt-4 mb-2 text-lg font-bold text-slate-700">最近追加された写真</p>
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo) => (
             <div key={photo.id} className="relative aspect-square overflow-hidden rounded-lg">
