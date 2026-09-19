@@ -2,6 +2,7 @@ import Button from "@/components/Button";
 import { Header } from "@/components/Header";
 import { FolderPlus, Folders, Images, Plus } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   const photos = [
@@ -23,7 +24,9 @@ export default function Home() {
 
         <div className="flex gap-4 my-6">
           <Button variant="secondary"><Plus />写真を追加</Button>
-          <Button variant="secondary"><Images />写真一覧</Button>
+          <Link href="/photos" className="w-full">
+            <Button variant="secondary"><Images />写真一覧</Button>
+          </Link>
           <Button variant="secondary"><Folders />アルバム一覧</Button>
         </div>
 
