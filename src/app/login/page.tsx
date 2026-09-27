@@ -50,32 +50,42 @@ export default function Login() {
     };
 
     const router = useRouter();
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-    const handleSubmit = async (e:React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-
+      
         setMessage("");
-
+      
         const isValid = validateLogin();
+      
         if (!isValid) {
-            return
+          return;
         }
-
-        const result = await signIn("credentials", {
+      
+        setIsLoggingIn(true);
+      
+        try {
+          const result = await signIn("credentials", {
             email: formData.email,
             password: formData.password,
             redirect: false,
           });
-        
+      
           if (result?.error) {
             setMessage("メールアドレスまたはパスワードが間違っています");
             return;
           }
-        
+      
           alert("ログインしました");
           router.push("/");
-
-        };
+        } catch (error) {
+          console.error(error);
+          setMessage("ログインに失敗しました");
+        } finally {
+          setIsLoggingIn(false);
+        }
+      };
 
     return(
         <div className="flex justify-center items-center min-h-screen px-4">
@@ -107,7 +117,9 @@ export default function Login() {
                         placeholder="パスワード"
                     />
                     <div className="my-4">
-                        <Button type="submit">ログイン</Button>
+                        <Button type="submit" isLoading={isLoggingIn} loadingText="ログイン中...">
+                            ログイン
+                        </Button>
                     </div>
                     {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
                         <p className="text-xs text-center">アカウントをお持ちでない方は<Link href="/signup" className="text-blue-500">新規作成</Link></p>

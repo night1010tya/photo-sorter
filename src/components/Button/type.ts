@@ -6,4 +6,6 @@ export type ButtonProps = {
     onClick?: React.MouseEventHandler<HTMLButtonElement>;
     disabled?: boolean;
     variant?: "primary" | "secondary";
+    isLoading?: boolean;
+    loadingText?: string;
 }

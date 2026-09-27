@@ -1,7 +1,8 @@
 import { ButtonProps } from "./type";
 
 export default function Button ({
-    children,type="button",onClick,disabled,variant="primary"
+    children,type="button",onClick,disabled,variant="primary",
+    isLoading = false,loadingText = "処理中...",
     }:ButtonProps) {
 
         const variantClass = {
@@ -13,12 +14,12 @@ export default function Button ({
             <button
                 type={type}
                 onClick={onClick}
-                disabled={disabled}
+                disabled={disabled || isLoading}
                 className={`flex flex-col items-center justify-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed
                             ${variantClass[variant]}`}
             >
-                {children}
+                {isLoading ? `⟳ ${loadingText}` : children}
             </button>
     )
 

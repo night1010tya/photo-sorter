@@ -21,6 +21,8 @@ export default function Signup() {
 
   const [message, setMessage] = useState("");
 
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -78,22 +80,32 @@ export default function Signup() {
       return;
     }
 
+    setIsSigningUp(true);
+  try {
     const response = await fetch("/api/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+        body: JSON.stringify(formData),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      setMessage(data.message);
-      return;
+        setMessage(data.message);
+        return;
     }
-    alert(data.message);
-    router.push("/login");
+      alert(data.message);
+      router.push("/login");
+      
+    } catch (error) {
+      console.error(error);
+      setMessage("登録に失敗しました");
+
+    } finally {
+      setIsSigningUp(false);
+    }
   };
 
   return (
@@ -144,7 +156,9 @@ export default function Signup() {
               />
             </div>
 
-            <Button type="submit">新規登録</Button>
+            <Button type="submit" isLoading={isSigningUp} loadingText="登録中...">
+              新規登録
+            </Button>
 
             {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
           </form>
