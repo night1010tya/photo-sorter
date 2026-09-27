@@ -13,6 +13,7 @@ type SelectedPhoto = {
 export default function AddPhotosForm() {
 
     const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
         if(!e.target.files) return;
@@ -27,24 +28,38 @@ export default function AddPhotosForm() {
     };
 
     const handleUpload = async () => {
-        const formData =new FormData();
-
-        photos.forEach((photo)=> {
+        setIsUploading(true);
+      
+        try {
+          const formData = new FormData();
+      
+          photos.forEach((photo) => {
             formData.append("photos", photo.file);
-        });
-
-        const response = await fetch("/api/photos", {
+          });
+      
+          const response = await fetch("/api/photos", {
             method: "POST",
             body: formData,
           });
-
-    };
+      
+          if (!response.ok) {
+            console.error("アップロードに失敗しました");
+            return;
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsUploading(false);
+        }
+      };
 
     const handleRemove = (previewUrl:string) => {
         setPhotos((prev)=>
         prev.filter((photo)=> photo.previewUrl !== previewUrl));
         URL.revokeObjectURL(previewUrl)
     };
+
+    
 
     return(
         <div>
@@ -74,8 +89,11 @@ export default function AddPhotosForm() {
             </div>
 
             <p>{photos.length}枚選択されています</p>
-            <Button type="submit" onClick={handleUpload}>アップロード</Button>
+            <Button type="submit" onClick={handleUpload}
+                    isLoading={isUploading} loadingText="アップロード中...">
+                アップロード
+            </Button>
 
         </div>
     );
-}
+ }
