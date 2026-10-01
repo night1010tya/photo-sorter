@@ -1,7 +1,6 @@
 import Button from "@/components/Button";
 import { Header } from "@/components/Header";
 import { FolderPlus, Folders, Images, Plus } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -22,8 +21,10 @@ export default function Home() {
           <Link href="/photos" className="w-full">
             <Button variant="secondary"><Images />写真一覧</Button>
           </Link>
-
-          <Button variant="secondary"><Folders />アルバム一覧</Button>
+          
+          <Link href="/albums" className="w-full">
+            <Button variant="secondary"><Folders />アルバム一覧</Button>
+          </Link>
         </div>
 
         <p className="mt-4 mb-2 text-lg font-bold text-slate-700">最近追加された写真</p>
