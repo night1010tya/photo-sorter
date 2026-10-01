@@ -5,11 +5,12 @@ import Link from "next/link";
 export async function Header() {
 
     const session = await auth();
+    const isLoggedIn = !!session?.user?.id;
 
     return(
             <header className="sticky top-0 z-50 flex bg-[#fadadd] text-gray-500 p-5 justify-between">
                 <Link href="/" className="font-bold hover:text-[#2d3748]">photo-sorter</Link>
-                {session?.user ? ( 
+                {isLoggedIn? ( 
                 <div>
                     <Link href="/account" className="hover:text-[#2d3748]">
                     <CircleUserRound/>
