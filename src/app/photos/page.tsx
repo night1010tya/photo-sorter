@@ -1,8 +1,15 @@
+import { auth } from "@/auth";
+import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import Image from "next/image"
 import Link from "next/link";
 
 export default async function Photos() {
+
+    const session = await auth();
+    if(!session?.user?.id){
+        return <AuthModal />
+    }
 
     const photos = [
         {

@@ -3,13 +3,14 @@ import { Header } from "@/components/Header"
 import { prisma } from "@/libs/prisma";
 import { Images } from "lucide-react";
 import CreateAlbumForm from "./CreateAlbumForm";
+import AuthModal from "@/components/AuthModal";
 
 export default async function Albums() {
 
-      const session = await auth();
-      if(!session?.user?.id){
-        return<p>ログインが必要です</p>
-      }
+  const session = await auth();
+  if(!session?.user?.id){
+      return <AuthModal />
+  }
 
   const albums = await prisma.albums.findMany({
     where: {

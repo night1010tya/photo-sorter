@@ -1,4 +1,5 @@
 import { auth, signOut } from "@/auth";
+import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { prisma } from "@/libs/prisma";
 import { CircleUserRound, Clock, Mail } from "lucide-react";
@@ -6,10 +7,9 @@ import { CircleUserRound, Clock, Mail } from "lucide-react";
 export default async function Account() {
 
     const session = await auth();
-
-    if (!session?.user?.id) {
-        return <p>ログインが必要です</p>;
-      }
+    if(!session?.user?.id){
+        return <AuthModal />
+    }
     
       const user = await prisma.user.findUnique({
         where: {
