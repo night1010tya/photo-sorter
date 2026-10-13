@@ -70,16 +70,22 @@ model Albums {
   album_photos AlbumPhotos[]
 }
 
+enum SortStatus {
+  UNSORTED
+  SORTED
+}
+
 model Photos {
-  id         Int       @id @default(autoincrement())
-  user_id    String
-  url        String
-  taken_at   DateTime?
-  location   String?
-  latitude   Decimal?
-  longitude  Decimal?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  id          Int        @id @default(autoincrement())
+  user_id     String
+  url         String
+  taken_at    DateTime?
+  location    String?
+  latitude    Decimal?
+  longitude   Decimal?
+  sort_status SortStatus @default(UNSORTED)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
 
   user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   album_photos AlbumPhotos[]

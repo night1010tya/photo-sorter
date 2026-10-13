@@ -7,17 +7,17 @@ erDiagram
     photos ||--o{ album_photos : belongs
 
     users {
-        int id PK
+        string id PK
         string name
         string email
-        string password
+        string passwordHash
         datetime created_at
         datetime updated_at
     }
 
     albums {
         int id PK
-        int user_id FK
+        string user_id FK
         string name
         datetime created_at
         datetime updated_at
@@ -25,12 +25,13 @@ erDiagram
 
     photos {
         int id PK
-        int user_id FK
+        string user_id FK
         string url
         datetime taken_at
         string location
         decimal latitude
         decimal longitude
+        SortStatus sort_status "UNSORTED(default)/SORTED"
         datetime created_at
         datetime updated_at
     }
