@@ -1,70 +1,76 @@
 import { auth } from "@/auth";
 import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
-import Image from "next/image"
+import { getPhotoSignedUrls } from "@/libs/photoUrl";
+import { prisma } from "@/libs/prisma";
+import Image from "next/image";
 import Link from "next/link";
 
 export default async function Photos() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return <AuthModal />;
+  }
 
-    const session = await auth();
-    if(!session?.user?.id){
-        return <AuthModal />
-    }
+  const photos = await prisma.photos.findMany({
+    where: {
+      user_id: session.user.id,
+    },
+    select: {
+      id: true,
+      url: true,
+    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+  });
 
-    const photos = [
-        {
-          id: 1,
-          url: "/cat.jpg",
-          taken_at: "2026-09-18T12:00:00",
-          location: "静岡県",
-          latitude: 35.123,
-          longitude: 138.123,
-        },
-        {
-          id: 2,
-          url: "/catpc.jpg",
-          taken_at: "2026-09-17T15:30:00",
-          location: "東京都",
-          latitude: 35.681,
-          longitude: 139.767,
-        },
+  const signedUrls = await getPhotoSignedUrls(photos.map((photo) => photo.url));
 
-        {
-            id: 3,
-            url: "/dogpc.jpg",
-            taken_at: "2026-04-04T05:30:00",
-            location: "東京都",
-            latitude: 35.681,
-            longitude: 139.767,
-        },
+  return (
+    <div>
+      <Header />
 
-        {
-            id: 4,
-            url: "/dog.jpg",
-            taken_at: "2026-06-23T17:30:00",
-            location: "静岡県",
-            latitude: 35.123,
-            longitude: 138.123,
-        },
-      ];
+      <div className="m-2 grid grid-cols-3 gap-2">
+        <Link
+          href="/photos/new"
+          aria-label="写真を追加"
+          className="flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:bg-gray-100"
+        >
+          <span aria-hidden="true" className="text-4xl">
+            ＋
+          </span>
+          <span className="mt-2 text-sm">写真を追加</span>
+        </Link>
 
-    return(
-        <div>
-            <Header />
-            <div className="grid grid-cols-3 gap-2 m-2">
-                {photos.map((photo) => (
-                    <Link key={photo.id} href={`/photos/${photo.id}`}>
-                        <div className="relative aspect-square overflow-hidden rounded-lg">
-                            <Image
-                            src={photo.url}
-                            alt="写真"
-                            fill
-                            className="object-cover"
-                            />
-                        </div>
-                    </Link>
-                ))}
-            </div>
-        </div>
-    )
+        {photos.map((photo) => {
+          const imageUrl = signedUrls.get(photo.url);
+
+          if (!imageUrl) {
+            return (
+              <div
+                key={photo.id}
+                className="flex aspect-square items-center justify-center rounded-lg bg-gray-100 p-2 text-center text-sm text-gray-500"
+              >
+                写真を読み込めませんでした
+              </div>
+            );
+          }
+
+          return (
+            <Link key={photo.id} href={`/photos/${photo.id}`}>
+              <div className="relative aspect-square overflow-hidden rounded-lg">
+                <Image
+                  src={imageUrl}
+                  alt="写真"
+                  fill
+                  sizes="33vw"
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
