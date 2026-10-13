@@ -17,10 +17,11 @@ model User {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
-  albums   Albums[]
-  photos   Photos[]
+  accounts     Account[]
+  sessions     Session[]
+  albums       Albums[]
+  photos       Photos[]
+  sortSessions SortSessions[]
 }
 
 model Account {
@@ -66,8 +67,9 @@ model Albums {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user         User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
   album_photos AlbumPhotos[]
+  sortSessions SortSessions[]
 }
 
 enum SortStatus {
@@ -87,8 +89,9 @@ model Photos {
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
 
-  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  album_photos AlbumPhotos[]
+  user                User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  album_photos        AlbumPhotos[]
+  sort_session_photos SortSessionPhotos[]
 }
 
 model AlbumPhotos {
@@ -102,4 +105,38 @@ model AlbumPhotos {
   photo Photos @relation(fields: [photo_id], references: [id], onDelete: Cascade)
 
   @@unique([album_id, photo_id])
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model SortSessions {
+  id             Int           @id @default(autoincrement())
+  user_id        String
+  album_id       Int
+  session_status SessionStatus @default(IN_PROGRESS)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  user                User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  album               Albums              @relation(fields: [album_id], references: [id], onDelete: Cascade)
+  sort_session_photos SortSessionPhotos[]
+}
+
+model SortSessionPhotos {
+  id              Int       @id @default(autoincrement())
+  sort_session_id Int
+  photo_id        Int
+  position        Int
+  processed_at    DateTime?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  sort_session SortSessions @relation(fields: [sort_session_id], references: [id], onDelete: Cascade)
+  photo        Photos       @relation(fields: [photo_id], references: [id], onDelete: Cascade)
+
+  @@unique([sort_session_id, photo_id])
+  @@unique([sort_session_id, position])
 }
