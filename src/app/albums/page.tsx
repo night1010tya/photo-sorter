@@ -1,12 +1,15 @@
 import { auth } from "@/auth";
+import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
+import { getPhotoSignedUrls } from "@/libs/photoUrl";
 import { prisma } from "@/libs/prisma";
 import { Images } from "lucide-react";
-import AuthModal from "@/components/AuthModal";
+import Image from "next/image";
 import CreateAlbumButton from "./CreateAlbumButton";
 
 export default async function Albums() {
   const session = await auth();
+
   if (!session?.user?.id) {
     return <AuthModal />;
   }
@@ -15,43 +18,85 @@ export default async function Albums() {
     where: {
       user_id: session.user.id,
     },
-
     include: {
       album_photos: {
-        include: {
-          photo: true,
+        orderBy: [{ created_at: "asc" }, { id: "asc" }],
+        take: 1,
+        select: {
+          photo: {
+            select: {
+              url: true,
+            },
+          },
+        },
+      },
+
+      _count: {
+        select: {
+          album_photos: true,
         },
       },
     },
-
-    orderBy: {
-      created_at: "desc",
-    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 
-  console.log(albums);
+  const paths: string[] = [];
+
+  for (const album of albums) {
+    const coverPhoto = album.album_photos[0]?.photo;
+
+    if (coverPhoto) {
+      paths.push(coverPhoto.url);
+    }
+  }
+
+  const signedUrls = await getPhotoSignedUrls(paths);
 
   return (
     <>
       <Header />
 
-      <div className="grid grid-cols-3 gap-2 m-2">
+      <div className="m-2 grid grid-cols-3 gap-2">
         <CreateAlbumButton />
-        {albums.map((album) => (
-          <div key={album.id} className="space-y-1">
-            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gray-200 hover:bg-gray-300">
-              <Images size={40} className="text-gray-400" />
-              <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-white">
-                <Images size={18} />
-                <span className="text-sm">{album.album_photos.length}</span>
-              </div>
-            </div>
 
-            <p className="text-center break-words bg-[#fadadd]/50 text-gray-500 rounded-full px-2 py-1">
-              {album.name}
-            </p>
-          </div>
-        ))}
+        {albums.map((album) => {
+          const coverPhoto = album.album_photos[0]?.photo;
+          const imageUrl = coverPhoto
+            ? signedUrls.get(coverPhoto.url)
+            : undefined;
+
+          return (
+            <div key={album.id} className="space-y-1">
+              <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gray-200 hover:bg-gray-300">
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt={`${album.name}の表紙`}
+                    fill
+                    sizes="33vw"
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : coverPhoto ? (
+                  <p className="p-2 text-center text-sm text-gray-500">
+                    写真を読み込めませんでした
+                  </p>
+                ) : (
+                  <Images size={40} className="text-gray-400" />
+                )}
+
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-white">
+                  <Images size={18} />
+                  <span className="text-sm">{album._count.album_photos}</span>
+                </div>
+              </div>
+
+              <p className="break-words rounded-full bg-[#fadadd]/50 px-2 py-1 text-center text-gray-500">
+                {album.name}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </>
   );
