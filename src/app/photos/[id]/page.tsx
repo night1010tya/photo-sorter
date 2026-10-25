@@ -15,7 +15,7 @@ type Props = {
   }>;
 };
 
-export default async function PhotoDetsil({ params }: Props) {
+export default async function PhotoDetail({ params }: Props) {
   const session = await auth();
   if (!session?.user?.id) {
     return <AuthModal />;
