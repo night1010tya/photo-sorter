@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../Button";
 import { Check, Folder, Plus, X } from "lucide-react";
 import CreateAlbumForm from "../CreateAlbumForm";
@@ -13,10 +13,33 @@ type Album = {
 type Props = {
   albums: Album[];
   onSelect: (albumId: number) => Promise<boolean>;
+  defaultOpen?: boolean;
+  triggerLabel?: string;
+  description?: string;
+  confirmLabel?: string;
+  savingLabel?: string;
+  onCancel?: () => void;
 };
 
-export default function AlbumSelectModal({ albums, onSelect }: Props) {
+export default function AlbumSelectModal({
+  albums,
+  onSelect,
+  defaultOpen = false,
+  triggerLabel = "アルバムに追加",
+  description = "写真を追加するアルバムを選んでください",
+  confirmLabel = "追加",
+  savingLabel = "追加中...",
+  onCancel,
+}: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (defaultOpen && dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, [defaultOpen]);
 
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
@@ -42,7 +65,10 @@ export default function AlbumSelectModal({ albums, onSelect }: Props) {
   };
 
   const handleClose = () => {
+    if (isSaving) return;
+
     dialogRef.current?.close();
+    onCancel?.();
   };
 
   const handleCreated = (album: Album) => {
@@ -58,13 +84,19 @@ export default function AlbumSelectModal({ albums, onSelect }: Props) {
 
   return (
     <>
-      <Button onClick={() => dialogRef.current?.showModal()}>
-        アルバムに追加
-      </Button>
+      {!defaultOpen && (
+        <Button onClick={() => dialogRef.current?.showModal()}>
+          {triggerLabel}
+        </Button>
+      )}
 
       <dialog
         ref={dialogRef}
         onClose={handleDialogClose}
+        onCancel={(event) => {
+          event.preventDefault();
+          handleClose();
+        }}
         className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-white p-6 text-gray-800 shadow-xl backdrop:bg-black/40"
       >
         <div className="mb-4 flex items-center justify-between">
@@ -84,9 +116,7 @@ export default function AlbumSelectModal({ albums, onSelect }: Props) {
           />
         ) : (
           <>
-            <p className="mb-4 text-sm text-gray-500">
-              写真を追加するアルバムを選んでください
-            </p>
+            <p className="mb-4 text-sm text-gray-500">{description}</p>
 
             <div className="max-h-72 overflow-y-auto">
               {allAlbums.length === 0 ? (
@@ -143,7 +173,7 @@ export default function AlbumSelectModal({ albums, onSelect }: Props) {
                   disabled={selectedAlbumId === null || isSaving}
                   className="rounded-lg bg-blue-500 px-5 py-2 text-sm text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
-                  {isSaving ? "追加中..." : "追加"}
+                  {isSaving ? savingLabel : confirmLabel}
                 </button>
               </div>
             </div>

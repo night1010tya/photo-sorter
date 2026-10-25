@@ -68,18 +68,31 @@ export async function POST(request: Request) {
         );
       }
     
-      const albumPhoto = await prisma.albumPhotos.upsert({
-        where: {
-          album_id_photo_id: {
+      const albumPhoto = await prisma.$transaction(async (tx) => {
+        const result = await tx.albumPhotos.upsert({
+          where: {
+            album_id_photo_id: {
+              album_id: albumId,
+              photo_id: photoId,
+            },
+          },
+          update: {},
+          create: {
             album_id: albumId,
             photo_id: photoId,
           },
-        },
-        update: {},
-        create: {
-          album_id: albumId,
-          photo_id: photoId,
-        },
+        });
+      
+        await tx.photos.update({
+          where: {
+            id: photoId,
+          },
+          data: {
+            sort_status: "SORTED",
+          },
+        });
+      
+        return result;
       });
     
       return NextResponse.json(

@@ -54,3 +54,70 @@ export async function POST(request:Request) {
       { status: 201 }
     )
   }
+
+
+
+
+  
+  export async function PATCH(request: Request) {
+    const session = await auth();
+  
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { message: "ログインが必要です" },
+        { status: 401 },
+      );
+    }
+  
+    let body: unknown;
+  
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { message: "リクエスト形式が正しくありません" },
+        { status: 400 },
+      );
+    }
+  
+    if (typeof body !== "object" || body === null) {
+      return NextResponse.json(
+        { message: "送信データが正しくありません" },
+        { status: 400 },
+      );
+    }
+  
+    const { photoId } = body as Record<string, unknown>;
+  
+    if (
+      typeof photoId !== "number" ||
+      !Number.isSafeInteger(photoId) ||
+      photoId <= 0
+    ) {
+      return NextResponse.json(
+        { message: "写真IDが正しくありません" },
+        { status: 400 },
+      );
+    }
+  
+    const result = await prisma.photos.updateMany({
+      where: {
+        id: photoId,
+        user_id: session.user.id,
+      },
+      data: {
+        sort_status: "SORTED",
+      },
+    });
+  
+    if (result.count === 0) {
+      return NextResponse.json(
+        { message: "写真が見つかりません" },
+        { status: 404 },
+      );
+    }
+  
+    return NextResponse.json({
+      message: "写真を仕分け済みにしました",
+    });
+  }

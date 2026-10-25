@@ -10,13 +10,14 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@daformat/react-swipeable-cards": "^1.0.4",
     "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.9.1",
+    "@prisma/client": "^7.10.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^1.45.0",
-    "next": "^16.3.5",
+    "next": "^16.4.3",
     "next-auth": "^5.0.0-beta.32",
     "pg": "^8.23.0",
     "react": "19.2.8",
@@ -29,8 +30,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.1",
-    "prisma": "^7.9.1",
+    "eslint-config-next": "^16.4.3",
+    "prisma": "^7.10.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

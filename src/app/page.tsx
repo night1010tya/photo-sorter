@@ -31,10 +31,12 @@ export default async function Home() {
       <Header />
       <main className="min-h-screen flex flex-col px-4">
         <div className="my-9 tracking-wider ">
-          <Button>
-            <FolderPlus className="animate-bounce duration-1000 mt-2" />
-            仕分けを始める
-          </Button>
+          <Link href="/swipe" className="w-full">
+            <Button>
+              <FolderPlus className="animate-bounce duration-1000 mt-2" />
+              仕分けを始める
+            </Button>
+          </Link>
         </div>
 
         <div className="flex gap-4 my-6">

@@ -1,0 +1,335 @@
+"use client";
+
+import { useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, FolderHeart } from "lucide-react";
+import { SwipeableCards } from "@daformat/react-swipeable-cards";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import AlbumSelectModal from "@/components/AlbumSelectModal";
+import PhotoSelectModal from "./PhotoSelectModal";
+import Link from "next/link";
+
+type Album = {
+  id: number;
+  name: string;
+};
+
+type Photo = {
+  id: number;
+  imageUrl: string;
+  sort_status: "UNSORTED" | "SORTED";
+};
+
+type Props = {
+  albums: Album[];
+  photos: Photo[];
+};
+
+type PendingSwipe = {
+  direction: "left" | "right";
+  photoId: number;
+};
+
+export default function SwipeClient({ albums, photos }: Props) {
+  const router = useRouter();
+
+  const [step, setStep] = useState<"album" | "photos" | "swipe">("album"); //操作段階
+  const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null); //保存先のアルバムID
+  const [processedCount, setProcessedCount] = useState(0); //仕分けた写真の数（保存・削除候補どちらも含む)
+  const [albumName, setAlbumName] = useState("保存先を選択"); //保存先のアルバム名
+  const [swipePhotos, setSwipePhotos] = useState<Photo[]>([]); //今回仕分ける写真の配列
+  const [addedCount, setAddedCount] = useState(0); //保存に仕分けた写真の数
+
+  const [isSaving, setIsSaving] = useState(false); //保存中か
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [pendingSwipe, setPendingSwipe] = useState<PendingSwipe | null>(null); //保存が確定していない操作
+
+  const savingRef = useRef(false);
+  const isBlocked = isSaving || pendingSwipe !== null;
+
+  const totalCount = swipePhotos.length; //今回仕分ける写真の総枚数
+  const progress = totalCount === 0 ? 0 : (processedCount / totalCount) * 100;
+
+  const cards = useMemo(
+    () =>
+      [...swipePhotos].reverse().map((photo) => ({
+        id: String(photo.id),
+        card: (
+          <div className="relative h-full w-full overflow-hidden rounded-2xl bg-gray-100">
+            <Image
+              src={photo.imageUrl}
+              alt="仕分け対象の写真"
+              fill
+              unoptimized
+              sizes="100vw"
+              draggable={false}
+              className="object-contain"
+            />
+          </div>
+        ),
+      })),
+    [swipePhotos],
+  );
+
+  const isComplete = totalCount > 0 && processedCount >= totalCount;
+
+  // 1枚分の結果を保存する。再試行でも同じ関数を使う
+  const saveSwipe = async (operation: PendingSwipe) => {
+    if (savingRef.current) return;
+
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveError(null);
+    setPendingSwipe(operation);
+
+    try {
+      if (operation.direction === "right") {
+        if (selectedAlbumId === null) {
+          throw new Error("保存先が未選択です");
+        }
+
+        const response = await fetch("/api/album-photos", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            photoId: operation.photoId,
+            albumId: selectedAlbumId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("アルバムへの保存に失敗しました");
+        }
+
+        setAddedCount((count) => count + 1);
+      } else {
+        const response = await fetch("/api/photos", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            photoId: operation.photoId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("仕分けの保存に失敗しました");
+        }
+      }
+
+      // 成功した場合だけ進捗を更新し、操作を再開
+      setProcessedCount((count) => count + 1);
+      setPendingSwipe(null);
+    } catch (error) {
+      console.error("仕分け結果の保存に失敗しました", error);
+      setSaveError("仕分け結果を保存できませんでした。再試行してください。");
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  // ライブラリから受け取った方向・IDを保存処理へ渡す
+  const handleSwipe = (direction: string, cardId: string) => {
+    if (step !== "swipe" || savingRef.current || pendingSwipe !== null) {
+      return;
+    }
+
+    if (direction !== "left" && direction !== "right") return;
+
+    void saveSwipe({
+      direction,
+      photoId: Number(cardId),
+    });
+  };
+
+  return (
+    <main className="relative left-1/2 h-dvh w-screen -translate-x-1/2 overflow-hidden bg-[#fff8fa] px-4 py-4 md:px-8">
+      {step === "album" && (
+        <AlbumSelectModal
+          albums={albums}
+          defaultOpen
+          description="仕分けた写真の保存先を選んでください"
+          confirmLabel="次へ"
+          savingLabel="準備中..."
+          onSelect={async (albumId) => {
+            setSelectedAlbumId(albumId);
+
+            const album = albums.find((item) => item.id === albumId);
+            setAlbumName(album?.name ?? "選択したアルバム");
+
+            setStep("photos");
+            return true;
+          }}
+          onCancel={() => router.push("/")}
+        />
+      )}
+
+      {step === "photos" && (
+        <PhotoSelectModal
+          photos={photos}
+          onBack={() => setStep("album")}
+          onStart={(photoIds) => {
+            const selectedIdSet = new Set(photoIds);
+
+            const selectedPhotos = photos.filter((photo) =>
+              selectedIdSet.has(photo.id),
+            );
+
+            setSwipePhotos(selectedPhotos);
+            setAddedCount(0);
+            setProcessedCount(0);
+            setStep("swipe");
+          }}
+        />
+      )}
+
+      {(isSaving || saveError) && (
+        <div className="absolute inset-x-4 top-4 z-50 flex flex-col items-center rounded-xl border border-pink-200 bg-white p-4 text-center shadow-lg">
+          {isSaving ? (
+            <p role="status" className="text-sm text-slate-600">
+              保存中です…
+            </p>
+          ) : (
+            <>
+              <p role="alert" className="text-sm text-red-600">
+                仕分け結果を保存できませんでした。
+                <br />
+                再試行してください。
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingSwipe) {
+                    void saveSwipe(pendingSwipe);
+                  }
+                }}
+                className="mt-3 rounded-lg bg-pink-500 px-4 py-2 text-white hover:bg-pink-600"
+              >
+                再試行
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      <SwipeableCards.Root
+        key={
+          step === "swipe"
+            ? swipePhotos.map((photo) => photo.id).join("-")
+            : "preparing"
+        }
+        inert={step !== "swipe" || isBlocked}
+        cards={cards}
+        swipeDirections="horizontal"
+        className="mx-auto flex h-full w-full flex-col gap-4"
+        onSwipe={(direction, cardId) => {
+          handleSwipe(direction, cardId);
+        }}
+        emptyView={
+          <div className="flex h-full flex-col items-center justify-center gap-3">
+            {isComplete ? (
+              <>
+                <FolderHeart size={48} className="text-pink-400" />
+                <p className="text-lg font-bold text-slate-700">
+                  すべての写真を確認しました
+                </p>
+                <p className="text-sm text-slate-500">
+                  {`${totalCount}枚中${addedCount}枚を「${albumName}」に追加しました。`}
+                </p>
+                <Link
+                  href="/albums"
+                  className="underline text-blue-600 hover:text-red-600"
+                >
+                  アルバム一覧へ
+                </Link>
+              </>
+            ) : (
+              <p className="text-sm text-slate-500">
+                {saveError
+                  ? "保存を再試行してください。"
+                  : "保存結果を確認しています…"}
+              </p>
+            )}
+          </div>
+        }
+      >
+        <div className="shrink-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2 text-slate-700">
+              <FolderHeart className="shrink-0 text-pink-400" />
+              <span className="truncate font-semibold">{albumName}</span>
+            </div>
+            <p className="shrink-0 text-sm text-slate-500">
+              {processedCount} / {totalCount} 枚完了
+            </p>
+          </div>
+          <div
+            role="progressbar"
+            aria-label="写真の仕分け進捗"
+            aria-valuemin={0}
+            aria-valuemax={totalCount}
+            aria-valuenow={processedCount}
+            className="mt-3 h-2 overflow-hidden rounded-full bg-pink-100"
+          >
+            <div
+              className="h-full rounded-full bg-pink-400 transition-[width]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        <SwipeableCards.Cards className="relative min-h-0 flex-1 touch-none select-none">
+          {(stack) =>
+            stack.map((card, index) => (
+              <SwipeableCards.CardWrapper
+                key={card.id}
+                card={card}
+                className="absolute inset-0"
+                style={{ zIndex: index + 1 }}
+              />
+            ))
+          }
+        </SwipeableCards.Cards>
+
+        {!isComplete && (
+          <div className="flex shrink-0 items-center justify-center gap-16 pb-2">
+            <div className="flex flex-col items-center gap-2">
+              <SwipeableCards.SwipeLeftButton
+                type="button"
+                aria-label="この写真をスキップする"
+                disabled={
+                  step !== "swipe" || isBlocked || processedCount >= totalCount
+                }
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100 disabled:opacity-40"
+              >
+                <ArrowLeft size={28} />
+              </SwipeableCards.SwipeLeftButton>
+
+              <span className="text-xs text-slate-500">スキップ</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-2">
+              <SwipeableCards.SwipeRightButton
+                type="button"
+                aria-label={`この写真を${albumName}に保存する`}
+                disabled={
+                  step !== "swipe" || isBlocked || processedCount >= totalCount
+                }
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 text-pink-600 shadow-sm ring-1 ring-pink-200 transition hover:bg-pink-200 disabled:opacity-40"
+              >
+                <ArrowRight size={28} />
+              </SwipeableCards.SwipeRightButton>
+
+              <span className="text-xs text-pink-600">アルバムに保存</span>
+            </div>
+          </div>
+        )}
+      </SwipeableCards.Root>
+    </main>
+  );
+}
