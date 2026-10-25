@@ -25,11 +25,11 @@ export default async function SwipePage() {
   const dbPhotos = await prisma.photos.findMany({
     where: {
       user_id: session.user.id,
-      sort_status: "UNSORTED",
     },
     select: {
       id: true,
       url: true,
+      sort_status: true,
     },
     orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
@@ -41,7 +41,7 @@ export default async function SwipePage() {
   const photos = dbPhotos.flatMap((photo) => {
     const imageUrl = signedUrls.get(photo.url);
     if (!imageUrl) return [];
-    return [{ id: photo.id, imageUrl }];
+    return [{ id: photo.id, imageUrl, sort_status: photo.sort_status }];
   });
 
   return <SwipeClient albums={albums} photos={photos} />;

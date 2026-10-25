@@ -1,5 +1,8 @@
 "use client";
 
+import PhotoStatusFilter, {
+  PhotoStatusFilterValue,
+} from "@/components/PhotoStatusFilter";
 import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 type Photo = {
   id: number;
   imageUrl: string;
+  sort_status: "UNSORTED" | "SORTED";
 };
 
 type Props = {
@@ -40,6 +44,13 @@ export default function PhotoSelectModal({ photos, onBack, onStart }: Props) {
     };
   }, []);
 
+  const [statusFilter, setStatusFilter] =
+    useState<PhotoStatusFilterValue>("UNSORTED");
+
+  const filteredPhotos = photos.filter(
+    (photo) => statusFilter === "ALL" || photo.sort_status === statusFilter,
+  );
+
   return (
     <dialog
       ref={dialogRef}
@@ -51,18 +62,28 @@ export default function PhotoSelectModal({ photos, onBack, onStart }: Props) {
     >
       <h2 className="text-lg font-semibold">仕分ける写真を選択</h2>
 
-      <p className="mt-2 text-sm text-gray-500">
-        選択できる写真：{photos.length}枚
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <PhotoStatusFilter
+          value={statusFilter}
+          onChange={(value) => {
+            setStatusFilter(value);
+            setSelectedPhotoIds([]);
+          }}
+        />
+
+        <Link
+          href="/photos/new"
+          className="text-sm font-medium text-pink-600 hover:underline"
+        >
+          ＋ 写真を追加
+        </Link>
+      </div>
+      <p className="mt-3 text-sm text-gray-500">
+        {filteredPhotos.length}枚から選択できます
       </p>
-      <Link
-        href="/photos/new"
-        className="underline text-blue-600 hover:text-red-600"
-      >
-        写真の追加
-      </Link>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        {photos.map((photo) => {
+        {filteredPhotos.map((photo) => {
           const isSelected = selectedPhotoIds.includes(photo.id);
 
           return (
@@ -94,6 +115,12 @@ export default function PhotoSelectModal({ photos, onBack, onStart }: Props) {
           );
         })}
       </div>
+
+      {filteredPhotos.length === 0 && (
+        <p className="py-8 text-center text-sm text-gray-500">
+          この条件に一致する写真はありません。
+        </p>
+      )}
 
       <div className="sticky -bottom-6 z-10 border-t border-gray-200 bg-white py-4">
         <button
