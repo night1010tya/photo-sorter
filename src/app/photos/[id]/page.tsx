@@ -4,7 +4,7 @@ import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { prisma } from "@/libs/prisma";
 import { supabaseAdmin } from "@/libs/supabaseAdmin";
-import { CalendarDays, MapPin, Undo2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,9 +13,12 @@ type Props = {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    albumId?: string | string[];
+  }>;
 };
 
-export default async function PhotoDetail({ params }: Props) {
+export default async function PhotoDetail({ params, searchParams }: Props) {
   const session = await auth();
   if (!session?.user?.id) {
     return <AuthModal />;
@@ -23,9 +26,28 @@ export default async function PhotoDetail({ params }: Props) {
 
   const { id } = await params;
   const photoId = Number(id);
+  if (!Number.isSafeInteger(photoId) || photoId <= 0) notFound();
 
-  if (!Number.isSafeInteger(photoId) || photoId <= 0) {
-    notFound();
+  let backHref = "/photos";
+
+  const query = await searchParams;
+  const fromAlbumId =
+    typeof query.albumId === "string" ? Number(query.albumId) : null;
+  if (
+    fromAlbumId !== null &&
+    Number.isSafeInteger(fromAlbumId) &&
+    fromAlbumId > 0
+  ) {
+    const albumPhoto = await prisma.albumPhotos.findFirst({
+      where: {
+        album_id: fromAlbumId,
+        photo_id: photoId,
+        album: { user_id: session.user.id },
+      },
+    });
+    if (albumPhoto) {
+      backHref = `/albums/${fromAlbumId}`;
+    }
   }
 
   const photo = await prisma.photos.findFirst({
@@ -65,10 +87,13 @@ export default async function PhotoDetail({ params }: Props) {
       <Header />
       <main className="text-center mx-auto max-w-3xl p-4">
         <Link
-          href="/photos"
+          href={backHref}
+          aria-label={
+            backHref === "/photos" ? "写真一覧へ戻る" : "アルバムへ戻る"
+          }
           className="block w-fit rounded-full bg-gray-400 px-4 py-2 mb-2 text-white hover:bg-gray-800"
         >
-          <Undo2 />
+          <ArrowLeft />
         </Link>
         <div className="border  p-3 overflow-y-auto border border-gray-200 rounded-xl bg-white p-6 shadow-md">
           <div className="relative h-[70vh] w-full">

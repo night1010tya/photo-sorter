@@ -3,6 +3,7 @@ import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { getPhotoSignedUrls } from "@/libs/photoUrl";
 import { prisma } from "@/libs/prisma";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -28,6 +29,13 @@ export default async function Photos() {
   return (
     <div>
       <Header />
+      <Link
+        href="/"
+        aria-label="ホームへ戻る"
+        className="m-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-slate-600 shadow-sm hover:bg-gray-100"
+      >
+        <ArrowLeft size={22} />
+      </Link>
 
       <div className="m-2 grid grid-cols-3 gap-2">
         <Link

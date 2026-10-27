@@ -3,9 +3,10 @@ import AuthModal from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { getPhotoSignedUrls } from "@/libs/photoUrl";
 import { prisma } from "@/libs/prisma";
-import { Images } from "lucide-react";
+import { ArrowLeft, Images } from "lucide-react";
 import Image from "next/image";
 import CreateAlbumButton from "./CreateAlbumButton";
+import Link from "next/link";
 
 export default async function Albums() {
   const session = await auth();
@@ -55,6 +56,13 @@ export default async function Albums() {
   return (
     <>
       <Header />
+      <Link
+        href="/"
+        aria-label="ホームへ戻る"
+        className="m-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-slate-600 shadow-sm hover:bg-gray-100"
+      >
+        <ArrowLeft size={22} />
+      </Link>
 
       <div className="m-2 grid grid-cols-3 gap-2">
         <CreateAlbumButton />
@@ -66,7 +74,11 @@ export default async function Albums() {
             : undefined;
 
           return (
-            <div key={album.id} className="space-y-1">
+            <Link
+              key={album.id}
+              href={`/albums/${album.id}`}
+              className="block space-y-1"
+            >
               <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gray-200 hover:bg-gray-300">
                 {imageUrl ? (
                   <Image
@@ -94,7 +106,7 @@ export default async function Albums() {
               <p className="break-words rounded-full bg-[#fadadd]/50 px-2 py-1 text-center text-gray-500">
                 {album.name}
               </p>
-            </div>
+            </Link>
           );
         })}
       </div>
