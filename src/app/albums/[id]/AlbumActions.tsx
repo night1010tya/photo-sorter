@@ -26,6 +26,9 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
+  const [isDeletingAlbum, setIsDeletingAlbum] = useState(false);
+  const [deleteAlbumError, setDeleteAlbumError] = useState<string | null>(null);
+
   const handleSelectPhoto = () => {
     setIsOpen(false);
     setSelectedPhotoIds([]);
@@ -83,6 +86,41 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
     }
   };
 
+  const handleRemoveAlbum = async () => {
+    if (isDeletingAlbum) return;
+
+    const confirmed = window.confirm(
+      `「${albumName}」を削除しますか？\n写真自体は削除されません。`,
+    );
+
+    if (!confirmed) return;
+    setIsDeletingAlbum(true);
+    setDeleteAlbumError(null);
+
+    try {
+      const response = await fetch("/api/albums", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ albumId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("アルバムを削除できませんでした");
+      }
+      router.replace("/albums");
+      router.refresh();
+    } catch (error) {
+      console.error("アルバムの削除に失敗しました", error);
+      setDeleteAlbumError(
+        "アルバムを削除できませんでした。もう一度お試しください。",
+      );
+    } finally {
+      setIsDeletingAlbum(false);
+    }
+  };
+
   return (
     <div>
       <div className="mb-2 flex justify-end px-2">
@@ -106,17 +144,20 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
             <button
               type="button"
               aria-label={`${albumName}の操作`}
+              disabled={isDeletingAlbum}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-gray-200"
               onClick={() => setIsOpen((prev) => !prev)}
               aria-expanded={isOpen}
             >
               <Ellipsis size={22} />
             </button>
+
             {isOpen && (
               <div className="absolute right-0 top-full z-10 mt-2 w-max rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
                 <button
                   type="button"
                   onClick={handleSelectPhoto}
+                  disabled={isDeletingAlbum}
                   className="w-full text-left text-sm block w-full px-4 py-3 text-left hover:bg-gray-50"
                 >
                   写真を選択
@@ -124,10 +165,12 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
                 <div className="border-t border-gray-300 bg-gray-50/50">
                   <button
                     type="button"
-                    className="w-full text-left text-sm text-red-600 hover:bg-red-50"
+                    onClick={handleRemoveAlbum}
+                    disabled={isDeletingAlbum}
+                    className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                   >
-                    <Trash />
-                    アルバムを削除
+                    <Trash size={18} />
+                    {isDeletingAlbum ? "削除中..." : "アルバムを削除"}
                   </button>
                 </div>
               </div>
@@ -135,6 +178,12 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
           </div>
         )}
       </div>
+
+      {deleteAlbumError && (
+        <p role="alert" className="mx-4 mb-3 text-sm text-red-600">
+          {deleteAlbumError}
+        </p>
+      )}
 
       <div className="m-2 grid grid-cols-3 gap-2">
         {photos.map((photo) => {

@@ -31,3 +31,64 @@ export async function POST(request: Request) {
         {status: 201}
       );
     }
+
+
+    export async function DELETE(request: Request) {
+      const session = await auth();
+    
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { message: "ログインが必要です" },
+          { status: 401 },
+        );
+      }
+    
+      let body: unknown;
+    
+      try {
+        body = await request.json();
+      } catch {
+        return NextResponse.json(
+          { message: "リクエスト形式が正しくありません" },
+          { status: 400 },
+        );
+      }
+    
+      if (typeof body !== "object" || body === null) {
+        return NextResponse.json(
+          { message: "送信データが正しくありません" },
+          { status: 400 },
+        );
+      }
+    
+      const { albumId } = body as Record<string, unknown>;
+    
+      if (
+        typeof albumId !== "number" ||
+        !Number.isSafeInteger(albumId) ||
+        albumId <= 0
+      ) {
+        return NextResponse.json(
+          { message: "アルバムIDが正しくありません" },
+          { status: 400 },
+        );
+      }
+
+      const result = await prisma.albums.deleteMany({
+        where: {
+          id: albumId,
+          user_id: session.user.id,
+        },
+      });
+    
+      if (result.count === 0) {
+        return NextResponse.json(
+          { message: "アルバムが見つかりません" },
+          { status: 404 },
+        );
+      }
+      
+      return NextResponse.json({
+        message: "アルバムを削除しました",
+      });
+    }
