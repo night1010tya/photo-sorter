@@ -104,3 +104,91 @@ export async function POST(request: Request) {
       );
 
 }
+
+
+export async function DELETE(request:Request){
+  const session = await auth();
+  if(!session?.user?.id){
+    return NextResponse.json(
+      {
+        message: "ログインが必要です",
+      },
+      {status: 401}
+    );
+  }
+
+  let body: unknown;
+
+  try{
+    body = await request.json();
+  }catch{
+    return NextResponse.json(
+      {message: "リクエスト形式が正しくありません"},
+      {status: 400}
+    );
+  }
+
+  if(typeof body !== "object" || body === null){
+    return NextResponse.json(
+      { message: "送信データが正しくありません" },
+      { status: 400 },
+    );
+  }
+
+  const {albumId,photoIds} = body as Record<string, unknown>;
+
+  if (
+    typeof albumId !== "number" ||
+    !Number.isSafeInteger(albumId) ||
+    albumId <= 0
+  ) {
+    return NextResponse.json(
+      { message: "写真IDが正しくありません" },
+      { status: 400 },
+    )
+  }
+
+
+  if (
+    !Array.isArray(photoIds) ||
+    photoIds.length === 0 ||
+    !photoIds.every(
+      (id: unknown) =>
+        typeof id === "number" &&
+        Number.isSafeInteger(id) &&
+        id > 0,
+    )
+  ) {
+    return NextResponse.json(
+      { message: "写真IDの一覧が正しくありません" },
+      { status: 400 },
+    );
+  }
+
+  const album = await prisma.albums.findFirst({
+    where: {
+      id: albumId,
+      user_id: session.user.id
+    },
+  });
+  if (!album) {
+    return NextResponse.json(
+      { message: "アルバムIDが正しくありません" },
+      { status: 404 },
+    );
+  }
+
+  const result = await prisma.albumPhotos.deleteMany({
+    where:{
+      album_id: albumId,
+      photo_id: {in: photoIds}
+    }
+  });
+  return NextResponse.json({
+    message: "選択した写真をアルバムから外しました",
+    removedCount: result.count,
+  });
+
+
+
+}
