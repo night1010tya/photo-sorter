@@ -7,6 +7,7 @@ export type InputProps = {
     name: string;
     type: string;
     value: string;
+    maxLength?: number;
     onChange: (e:React.ChangeEvent<HTMLInputElement>)=>void;
     error?: string;
     

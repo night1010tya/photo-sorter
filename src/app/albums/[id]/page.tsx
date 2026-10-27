@@ -4,10 +4,10 @@ import { Header } from "@/components/Header";
 import { getPhotoSignedUrls } from "@/libs/photoUrl";
 import { prisma } from "@/libs/prisma";
 import { ArrowLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AlbumActions from "./AlbumActions";
+import AlbumNameEditor from "./AlbumNameEditor";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -33,7 +33,17 @@ export default async function AlbumDetail({ params }: Props) {
     },
     include: {
       album_photos: {
-        include: { photo: true },
+        orderBy: {
+          created_at: "desc",
+        },
+        select: {
+          photo: {
+            select: {
+              id: true,
+              url: true,
+            },
+          },
+        },
       },
     },
   });
@@ -62,12 +72,8 @@ export default async function AlbumDetail({ params }: Props) {
 
         <div className="px-4 pt-6">
           <p className="text-xs tracking-widest text-pink-400">ALBUM</p>
-          <div className="flex items-end gap-3">
-            <h1 className="mt-1 break-words text-2xl font-semibold text-slate-700">
-              {album.name}
-            </h1>
-            <p className="mt-2 text-sm text-slate-400">全{photos.length}枚</p>
-          </div>
+          <AlbumNameEditor albumId={album.id} albumName={album.name} />
+          <p className="mt-2 text-sm text-slate-400">全{photos.length}枚</p>
         </div>
       </div>
 
