@@ -209,9 +209,7 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
       console.error("アルバムのダウンロードに失敗しました", error);
 
       setDownloadError(
-        error instanceof Error
-          ? error.message
-          : "ダウンロードできませんでした。もう一度お試しください。",
+        "ダウンロードできませんでした。通信環境や写真の合計容量（50MBまで）を確認して、もう一度お試しください。",
       );
     } finally {
       setIsDownloading(false);
