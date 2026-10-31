@@ -6,94 +6,139 @@ import Image from "next/image";
 import React, { useState } from "react";
 
 type SelectedPhoto = {
-    file: File;
-    previewUrl: string;
-  };
+  file: File;
+  previewUrl: string;
+};
 
 export default function AddPhotosForm() {
+  const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-    const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
-    const [isUploading, setIsUploading] = useState(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
 
-    const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
-        if(!e.target.files) return;
+    const files = Array.from(e.target.files);
 
-        const files = Array.from(e.target.files);
-
-        const newphotos=files.map((file)=>({
-            file:file,
-            previewUrl:URL.createObjectURL(file),
+    const newphotos = files.map((file) => ({
+      file: file,
+      previewUrl: URL.createObjectURL(file),
     }));
-        setPhotos((prev)=>[...prev, ...newphotos])
-    };
+    setPhotos((prev) => [...prev, ...newphotos]);
+  };
 
-    const handleUpload = async () => {
-        setIsUploading(true);
-      
-        try {
-          const formData = new FormData();
-      
-          photos.forEach((photo) => {
-            formData.append("photos", photo.file);
-          });
-      
-          const response = await fetch("/api/photos", {
-            method: "POST",
-            body: formData,
-          });
-      
-          if (!response.ok) {
-            console.error("アップロードに失敗しました");
-            return;
-          }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setIsUploading(false);
+  const handleUpload = async () => {
+    if (photos.length === 0 || isUploading) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+
+      photos.forEach((photo) => {
+        formData.append("photos", photo.file);
+      });
+
+      const response = await fetch("/api/photos", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 413) {
+          throw new Error("写真の合計容量が送信上限を超えています。");
         }
-      };
 
-    const handleRemove = (previewUrl:string) => {
-        setPhotos((prev)=>
-        prev.filter((photo)=> photo.previewUrl !== previewUrl));
-        URL.revokeObjectURL(previewUrl)
-    };
+        throw new Error(
+          `写真のアップロードに失敗しました（${response.status}）。`,
+        );
+      }
 
-    
+      window.alert("写真を追加しました。");
+    } catch (error) {
+      console.error("アップロードに失敗しました", error);
 
-    return(
-        <div>
-            <div className="py-4 flex justify-center">
-                <label htmlFor="photo-input"
-                       className="flex gap-3 cursor-pointer w-2/3 bg-blue-400 text-[#fff] rounded-lg border border-blue-500 justify-center hover:bg-blue-600">
-                        <ImageIcon />
-                        写真を選択してください
-                </label>
-                <input id="photo-input" className="hidden" type="file" accept="image/*" multiple onChange={handleChange}/>
-            </div>
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : "写真を追加できませんでした。もう一度お試しください。",
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
-            <p>選択した写真</p>
-
-            <div  className="grid grid-cols-3 gap-2">
-                {photos.map((photo)=>(
-                    <div key={photo.previewUrl}
-                         className="relative aspect-square overflow-hidden rounded-lg">
-                        <Image src={photo.previewUrl} fill unoptimized alt="選択した写真" className="object-cover"/>
-                        <button type="button"
-                        onClick={() => handleRemove(photo.previewUrl)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2 hover:bg-red-500">
-                            ×
-                        </button>
-                    </div>
-                ))}
-            </div>
-
-            <p>{photos.length}枚選択されています</p>
-            <Button type="submit" onClick={handleUpload}
-                    isLoading={isUploading} loadingText="アップロード中...">
-                アップロード
-            </Button>
-
-        </div>
+  const handleRemove = (previewUrl: string) => {
+    setPhotos((prev) =>
+      prev.filter((photo) => photo.previewUrl !== previewUrl),
     );
- }
+    URL.revokeObjectURL(previewUrl);
+  };
+
+  return (
+    <div>
+      <div className="py-4 flex justify-center">
+        <label
+          htmlFor="photo-input"
+          className="flex gap-3 cursor-pointer w-2/3 bg-blue-400 text-[#fff] rounded-lg border border-blue-500 justify-center hover:bg-blue-600"
+        >
+          <ImageIcon />
+          写真を選択してください
+        </label>
+        <input
+          id="photo-input"
+          className="hidden"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleChange}
+        />
+      </div>
+
+      <p>選択した写真</p>
+
+      <div className="grid grid-cols-3 gap-2">
+        {photos.map((photo) => (
+          <div
+            key={photo.previewUrl}
+            className="relative aspect-square overflow-hidden rounded-lg"
+          >
+            <Image
+              src={photo.previewUrl}
+              fill
+              unoptimized
+              alt="選択した写真"
+              className="object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemove(photo.previewUrl)}
+              className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2 hover:bg-red-500"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <p>{photos.length}枚選択されています</p>
+
+      {uploadError && (
+        <p role="alert" className="my-3 text-sm text-red-600">
+          {uploadError}
+        </p>
+      )}
+
+      <Button
+        type="button"
+        onClick={handleUpload}
+        isLoading={isUploading}
+        loadingText="アップロード中..."
+        disabled={photos.length === 0 || isUploading}
+      >
+        アップロード
+      </Button>
+    </div>
+  );
+}
