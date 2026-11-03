@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/Button";
+import { supabase } from "@/libs/supabase";
 import { Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,14 +10,30 @@ import React, { useState } from "react";
 type SelectedPhoto = {
   file: File;
   previewUrl: string;
+  path?: string; //Storageの保存先
+  token?: string; //アップロードの許可
+  storageSaved?: boolean; //Storageへの保存が確認できたか
+  error?: string;
 };
 
 export default function AddPhotosForm() {
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const [completedCount, setCompletedCount] = useState(0);
+  const [uploadTotal, setUploadTotal] = useState(0);
+  const [hasAttempted, setHasAttempted] = useState(false); //送信を試みたデータ
 
   const router = useRouter();
-  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // file.sizeはバイト単位なので、MBに変換する
+  const totalBytes = photos.reduce(
+    (total, photo) => total + photo.file.size,
+    0,
+  );
+
+  const totalMB = totalBytes / 1000000;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -35,33 +52,129 @@ export default function AddPhotosForm() {
 
     setIsUploading(true);
     setUploadError(null);
+    setHasAttempted(true);
+
+    const total = photos.length;
+    const failedPhotos: SelectedPhoto[] = [];
+    const completedPhotos: SelectedPhoto[] = [];
+
+    setUploadTotal(total);
+    setCompletedCount(0);
 
     try {
-      const formData = new FormData();
+      for (const selectedPhoto of photos) {
+        const photo: SelectedPhoto = {
+          ...selectedPhoto,
+          error: undefined,
+        };
 
-      photos.forEach((photo) => {
-        formData.append("photos", photo.file);
-      });
+        try {
+          // 1. 保存先とアップロード許可を取得
+          if (!photo.path || !photo.token) {
+            const response = await fetch("/api/photos/upload-url", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                fileName: photo.file.name,
+                contentType: photo.file.type,
+              }),
+            });
 
-      const response = await fetch("/api/photos", {
-        method: "POST",
-        body: formData,
-      });
+            if (!response.ok) {
+              throw new Error(
+                `アップロードの準備に失敗しました（${response.status}）。`,
+              );
+            }
 
-      if (!response.ok) {
-        throw new Error("アップロードに失敗しました");
+            const data = await response.json();
+
+            if (
+              typeof data.path !== "string" ||
+              typeof data.token !== "string"
+            ) {
+              throw new Error("アップロード許可を取得できませんでした。");
+            }
+
+            photo.path = data.path;
+            photo.token = data.token;
+          }
+
+          if (
+            typeof photo.path !== "string" ||
+            typeof photo.token !== "string"
+          ) {
+            throw new Error("保存先またはアップロード許可がありません。");
+          }
+
+          // 2. Storageへ直接アップロード
+          if (!photo.storageSaved) {
+            const { error } = await supabase.storage
+              .from("photos")
+              .uploadToSignedUrl(photo.path, photo.token, photo.file, {
+                contentType: photo.file.type,
+              });
+
+            if (error) {
+              console.error("Storageへの送信に失敗", error);
+
+              // 次のAPIで保存の有無を確認する
+            } else {
+              photo.storageSaved = true;
+            }
+          }
+
+          // 3. APIでStorageの存在確認とDB登録
+          const response = await fetch("/api/photos", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ path: photo.path }),
+          });
+
+          if (!response.ok) {
+            const result = await response.json().catch(() => null);
+
+            const message =
+              typeof result?.message === "string"
+                ? result.message
+                : `写真情報の登録に失敗しました（${response.status}）。`;
+
+            throw new Error(message);
+          }
+
+          completedPhotos.push(photo);
+          setCompletedCount(completedPhotos.length);
+        } catch (error) {
+          photo.error =
+            error instanceof Error
+              ? error.message
+              : "写真を追加できませんでした。";
+
+          failedPhotos.push(photo);
+        }
       }
 
-      window.alert("写真を追加しました。");
+      // すべての処理が終わったら、失敗分だけ残す
+      setPhotos(failedPhotos);
 
+      completedPhotos.forEach((photo) => {
+        URL.revokeObjectURL(photo.previewUrl);
+      });
+
+      if (failedPhotos.length > 0) {
+        setUploadError(
+          `${total}枚中${completedPhotos.length}枚を追加しました。` +
+            `次の${failedPhotos.length}枚を追加できませんでした。`,
+        );
+        return;
+      }
+
+      window.alert(`${total}枚の写真を追加しました。`);
       router.push("/");
       router.refresh();
-    } catch (error) {
-      console.error("アップロードに失敗しました", error);
-
-      setUploadError(
-        "写真を追加できませんでした。通信環境を確認して、もう一度お試しください。",
-      );
     } finally {
       setIsUploading(false);
     }
@@ -91,7 +204,7 @@ export default function AddPhotosForm() {
           accept="image/*"
           multiple
           onChange={handleChange}
-          disabled={isUploading}
+          disabled={isUploading || hasAttempted}
         />
       </div>
 
@@ -99,35 +212,52 @@ export default function AddPhotosForm() {
 
       <div className="grid grid-cols-3 gap-2">
         {photos.map((photo) => (
-          <div
-            key={photo.previewUrl}
-            className="relative aspect-square overflow-hidden rounded-lg"
-          >
-            <Image
-              src={photo.previewUrl}
-              fill
-              unoptimized
-              alt="選択した写真"
-              className="object-cover"
-            />
-            <button
-              type="button"
-              onClick={() => handleRemove(photo.previewUrl)}
-              disabled={isUploading}
-              className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2 hover:bg-red-500"
-            >
-              ×
-            </button>
+          <div key={photo.previewUrl}>
+            <div className="relative aspect-square overflow-hidden rounded-lg">
+              <Image
+                src={photo.previewUrl}
+                fill
+                unoptimized
+                alt={photo.file.name}
+                className="object-cover"
+              />
+
+              {!hasAttempted && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(photo.previewUrl)}
+                  disabled={isUploading}
+                  aria-label={`${photo.file.name}を選択から外す`}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2 hover:bg-red-500"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {photo.error && (
+              <p className="mt-1 text-sm text-red-600">{photo.error}</p>
+            )}
           </div>
         ))}
       </div>
 
       <p>{photos.length}枚選択されています</p>
+
+      <p className="text-gray-700">選択した容量：{totalMB.toFixed(2)} MB</p>
+
+      {isUploading && (
+        <p role="status" className="my-3 text-gray-700">
+          {uploadTotal}枚中{completedCount}枚完了
+        </p>
+      )}
+
       {uploadError && (
         <p role="alert" className="my-3 text-sm text-red-600">
           {uploadError}
         </p>
       )}
+
       <Button
         type="button"
         onClick={handleUpload}
@@ -135,7 +265,7 @@ export default function AddPhotosForm() {
         loadingText="アップロード中..."
         disabled={photos.length === 0 || isUploading}
       >
-        アップロード
+        {hasAttempted ? `${photos.length}枚を再試行` : "アップロード"}
       </Button>
     </div>
   );
