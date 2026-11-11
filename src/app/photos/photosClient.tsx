@@ -18,9 +18,9 @@ type Props = {
 export default function PhotosClient({ photos }: Props) {
   const router = useRouter();
 
-  const [isSelecting, setIsSelecting] = useState(false); //写真選択モード
+  const [isSelecting, setIsSelecting] = useState(false);
 
-  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]); // 削除対象
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);

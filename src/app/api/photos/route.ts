@@ -54,7 +54,6 @@ export async function POST(request: Request) {
     );
   }
 
-  //保存先の形式と所有者の確認
   const parts = path.split("/");
   const fileName = parts[1];
 
@@ -82,11 +81,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // エラーが起きた段階を記録する
   let stage = "STORAGE_CHECK";
 
   try {
-    //Storageに写真が存在するか確認
     const { error } = await supabaseAdmin.storage
       .from("photos")
       .info(path);
@@ -108,7 +105,6 @@ export async function POST(request: Request) {
 
     stage = "DB_REGISTER";
 
-    //同じ保存先が登録済みか確認
     const existingPhoto = await prisma.photos.findFirst({
       where: {
         user_id: session.user.id,
@@ -126,7 +122,6 @@ export async function POST(request: Request) {
       );
     }
 
-    //DBに写真情報を登録
     await prisma.photos.create({
       data: {
         user_id: session.user.id,

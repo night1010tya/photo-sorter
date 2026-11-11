@@ -33,21 +33,21 @@ type PendingSwipe = {
 export default function SwipeClient({ albums, photos }: Props) {
   const router = useRouter();
 
-  const [step, setStep] = useState<"album" | "photos" | "swipe">("album"); //操作段階
-  const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null); //保存先のアルバムID
-  const [processedCount, setProcessedCount] = useState(0); //仕分けた写真の数（保存・削除候補どちらも含む)
-  const [albumName, setAlbumName] = useState("保存先を選択"); //保存先のアルバム名
-  const [swipePhotos, setSwipePhotos] = useState<Photo[]>([]); //今回仕分ける写真の配列
-  const [addedCount, setAddedCount] = useState(0); //保存に仕分けた写真の数
+  const [step, setStep] = useState<"album" | "photos" | "swipe">("album");
+  const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
+  const [processedCount, setProcessedCount] = useState(0);
+  const [albumName, setAlbumName] = useState("保存先を選択");
+  const [swipePhotos, setSwipePhotos] = useState<Photo[]>([]);
+  const [addedCount, setAddedCount] = useState(0);
 
-  const [isSaving, setIsSaving] = useState(false); //保存中か
+  const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [pendingSwipe, setPendingSwipe] = useState<PendingSwipe | null>(null); //保存が確定していない操作
+  const [pendingSwipe, setPendingSwipe] = useState<PendingSwipe | null>(null);
 
   const savingRef = useRef(false);
   const isBlocked = isSaving || pendingSwipe !== null;
 
-  const totalCount = swipePhotos.length; //今回仕分ける写真の総枚数
+  const totalCount = swipePhotos.length;
   const progress = totalCount === 0 ? 0 : (processedCount / totalCount) * 100;
 
   const cards = useMemo(
@@ -73,7 +73,6 @@ export default function SwipeClient({ albums, photos }: Props) {
 
   const isComplete = totalCount > 0 && processedCount >= totalCount;
 
-  // 1枚分の結果を保存する。再試行でも同じ関数を使う
   const saveSwipe = async (operation: PendingSwipe) => {
     if (savingRef.current) return;
 
@@ -120,7 +119,6 @@ export default function SwipeClient({ albums, photos }: Props) {
         }
       }
 
-      // 成功した場合だけ進捗を更新し、操作を再開
       setProcessedCount((count) => count + 1);
       setPendingSwipe(null);
     } catch (error) {
@@ -132,7 +130,6 @@ export default function SwipeClient({ albums, photos }: Props) {
     }
   };
 
-  // ライブラリから受け取った方向・IDを保存処理へ渡す
   const handleSwipe = (direction: string, cardId: string) => {
     if (step !== "swipe" || savingRef.current || pendingSwipe !== null) {
       return;
