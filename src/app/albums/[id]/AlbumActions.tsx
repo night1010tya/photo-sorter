@@ -30,16 +30,16 @@ type DownloadResponse = {
 export default function AlbumActions({ albumId, albumName, photos }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [isSelectingPhotos, setIsSelectingPhotos] = useState(false); //写真選択モード
+  const [isSelectingPhotos, setIsSelectingPhotos] = useState(false);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
-  const [isRemoving, setIsRemoving] = useState(false); //紐付け解除中
+  const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
-  const [isDeletingAlbum, setIsDeletingAlbum] = useState(false); //アルバム削除中
+  const [isDeletingAlbum, setIsDeletingAlbum] = useState(false);
   const [deleteAlbumError, setDeleteAlbumError] = useState<string | null>(null);
 
-  const [isDownloading, setIsDownloading] = useState(false); // ZIPの取得中か
+  const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const handleSelectPhoto = () => {
@@ -142,7 +142,6 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
     setDownloadError(null);
 
     try {
-      // APIから写真の取得用URLを受け取る
       const response = await fetch(`/api/albums/${albumId}/download`, {
         cache: "no-store",
       });
@@ -155,7 +154,7 @@ export default function AlbumActions({ albumId, albumName, photos }: Props) {
 
       const zip = new JSZip();
 
-      const maxTotalBytes = 50 * 1024 * 1024; // 暫定の容量制限：元写真の合計50MB
+      const maxTotalBytes = 50 * 1024 * 1024;
       let totalBytes = 0;
 
       for (const photo of result.photos) {

@@ -10,9 +10,9 @@ import React, { useState } from "react";
 type SelectedPhoto = {
   file: File;
   previewUrl: string;
-  path?: string; //Storageの保存先
-  token?: string; //アップロードの許可
-  storageSaved?: boolean; //Storageへの保存が確認できたか
+  path?: string;
+  token?: string;
+  storageSaved?: boolean;
   error?: string;
 };
 
@@ -23,16 +23,14 @@ export default function AddPhotosForm() {
 
   const [completedCount, setCompletedCount] = useState(0);
   const [uploadTotal, setUploadTotal] = useState(0);
-  const [hasAttempted, setHasAttempted] = useState(false); //送信を試みたデータ
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   const router = useRouter();
 
-  // file.sizeはバイト単位なので、MBに変換する
   const totalBytes = photos.reduce(
     (total, photo) => total + photo.file.size,
     0,
   );
-
   const totalMB = totalBytes / 1000000;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +67,6 @@ export default function AddPhotosForm() {
         };
 
         try {
-          // 1. 保存先とアップロード許可を取得
           if (!photo.path || !photo.token) {
             const response = await fetch("/api/photos/upload-url", {
               method: "POST",
@@ -108,7 +105,6 @@ export default function AddPhotosForm() {
             throw new Error("保存先またはアップロード許可がありません。");
           }
 
-          // 2. Storageへ直接アップロード
           if (!photo.storageSaved) {
             const { error } = await supabase.storage
               .from("photos")
@@ -118,14 +114,11 @@ export default function AddPhotosForm() {
 
             if (error) {
               console.error("Storageへの送信に失敗", error);
-
-              // 次のAPIで保存の有無を確認する
             } else {
               photo.storageSaved = true;
             }
           }
 
-          // 3. APIでStorageの存在確認とDB登録
           const response = await fetch("/api/photos", {
             method: "POST",
             headers: {
@@ -157,7 +150,6 @@ export default function AddPhotosForm() {
         }
       }
 
-      // すべての処理が終わったら、失敗分だけ残す
       setPhotos(failedPhotos);
 
       completedPhotos.forEach((photo) => {

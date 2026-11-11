@@ -10,9 +10,9 @@ type Props = {
 };
 
 export default function AlbumNameEditor({ albumId, albumName }: Props) {
-  const [isEditing, setIsEditing] = useState(false); // アルバム名を編集中か
+  const [isEditing, setIsEditing] = useState(false);
 
-  const [name, setName] = useState(albumName); // 入力欄で編集中の名前
+  const [name, setName] = useState(albumName);
 
   const router = useRouter();
 
