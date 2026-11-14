@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -123,12 +123,9 @@ export default function PhotosClient({ photos }: Props) {
           <Link
             href="/photos/new"
             aria-label="写真を追加"
-            className="flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:bg-gray-100"
+            className="flex aspect-square w-full items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300"
           >
-            <span aria-hidden="true" className="text-4xl">
-              ＋
-            </span>
-            <span className="mt-2 text-sm">写真を追加</span>
+            <Plus />
           </Link>
         )}
 
