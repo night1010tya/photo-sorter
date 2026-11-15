@@ -1,26 +1,31 @@
 import { ButtonProps } from "./type";
 
-export default function Button ({
-    children,type="button",onClick,disabled,variant="primary",
-    isLoading = false,loadingText = "処理中...",
-    }:ButtonProps) {
+export default function Button({
+  children,
+  type = "button",
+  onClick,
+  disabled,
+  variant = "primary",
+  isLoading = false,
+  loadingText = "処理中...",
+}: ButtonProps) {
+  const variantClass = {
+    primary:
+      "block w-full p-3 bg-gray-500/75 border-2 shadow-lg shadow-slate-400 text-[#ffffff] font-extrabold rounded-full hover:bg-gray-500 active:scale-95",
+    secondary:
+      "w-full h-[100px] bg-white text-black border border-black rounded-2xl hover:bg-gray-100 active:scale-95 shadow-lg shadow-slate-400",
+  };
 
-        const variantClass = {
-            primary:"block w-full p-3 bg-zinc-600/75 shadow-lg shadow-slate-400 text-[#ffffff] font-extrabold rounded-full hover:bg-gray-500 active:scale-95",
-            secondary:"w-full h-[100px] bg-white text-black border border-black rounded-2xl hover:bg-gray-100 active:scale-95 shadow-lg shadow-slate-400",
-        }
-
-    return(
-            <button
-                type={type}
-                onClick={onClick}
-                disabled={disabled || isLoading}
-                className={`flex flex-col items-center justify-center gap-2
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled || isLoading}
+      className={`flex flex-col items-center justify-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed
                             ${variantClass[variant]}`}
-            >
-                {isLoading ? `⟳ ${loadingText}` : children}
-            </button>
-    )
-
+    >
+      {isLoading ? `⟳ ${loadingText}` : children}
+    </button>
+  );
 }
