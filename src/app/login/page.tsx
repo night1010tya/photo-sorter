@@ -61,6 +61,13 @@ export default function Login() {
       return;
     }
 
+    if (!navigator.onLine) {
+      setMessage(
+        "ログインに失敗しました。\nネットワーク接続を確認してください。",
+      );
+      return;
+    }
+
     setIsLoggingIn(true);
 
     try {
@@ -79,7 +86,7 @@ export default function Login() {
       router.push("/");
     } catch (error) {
       console.error(error);
-      setMessage("ログインに失敗しました");
+      setMessage("ログインに失敗しました。\n時間をおいて再度お試しください。");
     } finally {
       setIsLoggingIn(false);
     }
@@ -127,7 +134,13 @@ export default function Login() {
                 ログイン
               </Button>
             </div>
-            {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
+            {message && (
+              <div className="mt-4 flex justify-center">
+                <p className="inline-flex items-center gap-1.5 bg-rose-100/90 text-rose-600 text-xs sm:text-sm font-bold px-4 py-2 rounded-full shadow-sm shadow-rose-200/50 whitespace-pre-line">
+                  {message}
+                </p>
+              </div>
+            )}
             <p className="text-xs text-center">
               アカウントをお持ちでない方は
               <Link

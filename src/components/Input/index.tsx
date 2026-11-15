@@ -31,7 +31,9 @@ export default function Input({
         maxLength={maxLength}
         className={`w-full ${sizeClass[size]}  ${error ? "border-red-500" : "border-gray-300"}`}
       />
-      {error && <p className="text-[8px] text-red-500">{error}</p>}
+      {error && (
+        <p className="text-xs text-red-500 bg-yellow-50 text-right">{error}</p>
+      )}
     </div>
   );
 }

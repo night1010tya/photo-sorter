@@ -95,7 +95,7 @@ export default function Signup() {
       router.push("/login");
     } catch (error) {
       console.error(error);
-      setMessage("登録に失敗しました");
+      setMessage("登録できませんでした。\n時間をおいて再度お試しください。");
     } finally {
       setIsSigningUp(false);
     }
@@ -162,7 +162,13 @@ export default function Signup() {
               新規登録
             </Button>
 
-            {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
+            {message && (
+              <div className="mt-4 flex justify-center">
+                <p className="inline-flex items-center gap-1.5 bg-rose-100/90 text-rose-600 text-xs sm:text-sm font-bold px-4 py-2 rounded-full shadow-sm shadow-rose-200/50 whitespace-pre-line">
+                  {message}
+                </p>
+              </div>
+            )}
           </form>
           {/* <p className="text-sm">または以下で登録</p>
             <Button>Googleで登録</Button> */}
