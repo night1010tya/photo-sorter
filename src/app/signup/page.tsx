@@ -47,18 +47,13 @@ export default function Signup() {
 
     if (!formData.email.trim()) {
       newErrors.email = "メールアドレスを入力してください";
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
-    ) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = "正しいメールアドレスを入力してください";
     }
 
     if (!formData.password) {
       newErrors.password = "パスワードを入力してください";
-    } else if (
-      formData.password.length < 8 ||
-      formData.password.length > 24
-    ) {
+    } else if (formData.password.length < 8 || formData.password.length > 24) {
       newErrors.password = "パスワードは8〜24文字で入力してください";
     }
 
@@ -81,43 +76,46 @@ export default function Signup() {
     }
 
     setIsSigningUp(true);
-  try {
-    const response = await fetch("/api/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    try {
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
-    });
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
+      if (!response.ok) {
         setMessage(data.message);
         return;
-    }
+      }
       alert(data.message);
       router.push("/login");
-      
     } catch (error) {
       console.error(error);
-      setMessage("登録に失敗しました");
-
+      setMessage("登録できませんでした。\n時間をおいて再度お試しください。");
     } finally {
       setIsSigningUp(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen px-4">
-      <div className="w-full">
-        <p className="block text-2xl text-center text-gray-500 mb-[15px] font-semibold">新規登録</p>
-        <div className="bg-[#e6e6fa] text-center p-[35px] border-1 border-gray-500/75 rounded-lg shadow-gray-500 flex flex-col gap-1">
+    <div className="flex justify-center items-center min-h-screen p-5">
+      <div className="w-full border-4 border-red-500/25 rounded-lg p-5 shadow-gray-500 bg-yellow-50 shadow-lg">
+        <h1 className="font-bold text-gray-500 text-4xl text-center w-fit mx-auto border-b-4 border-red-300 p-1">
+          <Link href="/">photo-sorter</Link>
+        </h1>
+        <div className="text-center p-[35px] shadow-gray-500 flex flex-col gap-1">
+          <p className="block text-xl text-center text-gray-500 mb-[15px] font-semibold">
+            新規登録
+          </p>
           <form onSubmit={handleSubmit}>
             <div>
               <Input
-              label="名前"
-              placeholder="名前"
+                label="名前"
+                placeholder="名前"
                 id="name"
                 name="name"
                 type="text"
@@ -156,18 +154,33 @@ export default function Signup() {
               />
             </div>
 
-            <Button type="submit" isLoading={isSigningUp} loadingText="登録中...">
+            <Button
+              type="submit"
+              isLoading={isSigningUp}
+              loadingText="登録中..."
+            >
               新規登録
             </Button>
 
-            {message && <p className="mb-3 text-sm text-red-500">{message}</p>}
+            {message && (
+              <div className="mt-4 flex justify-center">
+                <p className="inline-flex items-center gap-1.5 bg-rose-100/90 text-rose-600 text-xs sm:text-sm font-bold px-4 py-2 rounded-full shadow-sm shadow-rose-200/50 whitespace-pre-line">
+                  {message}
+                </p>
+              </div>
+            )}
           </form>
-            <p className="text-sm">または以下で登録</p>
-            <Button>Googleで登録</Button>
-            <p className="text-xs text-center">
-              既にアカウントをお持ちの方は
-              <Link href="/login" className="text-blue-500">ログイン</Link>
-            </p>
+          {/* <p className="text-sm">または以下で登録</p>
+            <Button>Googleで登録</Button> */}
+          <p className="text-xs text-center pt-5">
+            既にアカウントをお持ちの方は
+            <Link
+              href="/login"
+              className="text-blue-500 border-b hover:text-red-500"
+            >
+              ログイン
+            </Link>
+          </p>
         </div>
       </div>
     </div>
