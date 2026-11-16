@@ -11,9 +11,9 @@ export default function Button({
 }: ButtonProps) {
   const variantClass = {
     primary:
-      "block w-full p-3 bg-gray-500/75 border-2 shadow-lg shadow-slate-400 text-[#ffffff] font-extrabold rounded-full hover:bg-gray-500 active:scale-95",
+      "block p-3 w-full items-center justify-center gap-2 rounded-2xl bg-[#2C3F55] text-white shadow-sm font-extrabold hover:bg-black/60 active:scale-95",
     secondary:
-      "w-full h-[100px] bg-white text-black border border-black rounded-2xl hover:bg-gray-100 active:scale-95 shadow-lg shadow-slate-400",
+      "w-full h-[100px] bg-white/80 text-[#2C3F55] rounded-xl hover:bg-yellow-500/30 font-semibold",
   };
 
   return (
