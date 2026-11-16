@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <div className="mx-auto min-h-screen w-full max-w-md border-b border-pink-200/30 bg-linear-to-b from-orange-100 to-pink-200">
+        <div className="mx-auto min-h-screen w-full max-w-md border-b border-pink-200/30 bg-[#EBD7C6]/35 text-[#2C3F55]">
           {children}
         </div>
       </body>

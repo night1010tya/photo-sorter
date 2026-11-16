@@ -30,7 +30,7 @@ export default async function Home() {
     <>
       <Header />
       <main className="min-h-screen flex flex-col px-4">
-        <div className="my-9 tracking-wider ">
+        <div className="mt-7 mb-4 tracking-wider">
           <Link href="/swipe" className="w-full">
             <Button>
               <FolderPlus className="animate-bounce duration-1000 mt-2" />
@@ -39,30 +39,36 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="flex gap-4 my-6">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           <Link href="/photos/new" className="w-full">
             <Button variant="secondary">
-              <Plus />
+              <span className="inline-flex items-center justify-center rounded-full bg-[#DE9C90] p-3">
+                <Plus size={20} aria-hidden="true" />
+              </span>
               写真を追加
             </Button>
           </Link>
 
           <Link href="/photos" className="w-full">
             <Button variant="secondary">
-              <Images />
+              <span className="inline-flex items-center justify-center rounded-full bg-[#97C1CB] p-3">
+                <Images size={20} aria-hidden="true" />
+              </span>
               写真一覧
             </Button>
           </Link>
 
           <Link href="/albums" className="w-full">
             <Button variant="secondary">
-              <Folders />
+              <span className="inline-flex items-center justify-center rounded-full bg-[#EBD7C6] p-3">
+                <Folders size={20} aria-hidden="true" />
+              </span>
               アルバム一覧
             </Button>
           </Link>
         </div>
 
-        <p className="mt-4 mb-2 text-lg font-bold text-slate-700">
+        <p className="mt-7 mb-2 text-lg font-bold text-slate-700">
           最近追加された写真
         </p>
         {!session?.user?.id ? (
@@ -74,7 +80,7 @@ export default async function Home() {
             まだ写真がありません。写真を追加してみましょう。
           </p>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid flex-1 grid-cols-3 auto-rows-[minmax(6rem,1fr)] gap-2">
             {photos.map((photo) => {
               const imageUrl = signedUrls.get(photo.url);
 
@@ -90,17 +96,19 @@ export default async function Home() {
               }
 
               return (
-                <Link key={photo.id} href={`/photos/${photo.id}`}>
-                  <div className="relative aspect-square overflow-hidden rounded-lg">
-                    <Image
-                      src={imageUrl}
-                      alt="最近追加した写真"
-                      fill
-                      unoptimized
-                      sizes="33vw"
-                      className="object-cover"
-                    />
-                  </div>
+                <Link
+                  key={photo.id}
+                  href={`/photos/${photo.id}`}
+                  className="relative block overflow-hidden rounded-lg"
+                >
+                  <Image
+                    src={imageUrl}
+                    alt="最近追加した写真"
+                    fill
+                    unoptimized
+                    sizes="33vw"
+                    className="object-cover"
+                  />
                 </Link>
               );
             })}
